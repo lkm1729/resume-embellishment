@@ -160,9 +160,9 @@ Times New Roman, Cambria, Garamond, Palatino Linotype, Consolas, Courier New
 ## D · 版本号与关于面板
 
 - 构建时由 Vite 注入两个全局量：`__APP_VERSION__`（`package.json` 的 version）与
-  `__BUILD_STAMP__`（本地日期 `YYYYMMDD`）。
-- 标签格式 `V0.1.0(20260928)` —— 版本号加构建日期，`src/core/ui/version.ts` 负责拼装，
-  正则 `^V\d+\.\d+\.\d+\(\d{8}\)$` 用来验收。
+  `__BUILD_STAMP__`（本地日期 `YYYYMMDD`，可用环境变量 `BUILD_STAMP` 钉住）。
+- 标签格式 `V1.0.0 (20261001)` —— 版本号加构建日期，`src/core/ui/version.ts` 负责拼装，
+  正则 `^V\d+\.\d+\.\d+ \(\d{8}\)$` 用来验收。
 - 位置在侧栏左下角（`src/features/shell/SidebarFooter.tsx`）：左边点开「关于」
   （版本、构建日期、字体致谢），右边是主题切换按钮。
 

@@ -15,7 +15,7 @@
  *      `[data-theme='light']` 必须能压过 `@theme` 里的深色默认值）；
  *   2. `--color-paper-edge` 在两套主题下都非空 —— 浅色画布与白纸对比度只有 1.24:1，
  *      这一圈描边就是纸张边界的全部依据；
- *   3. 侧边栏版本号形如 `V0.1.1 (20260930)`；
+ *   3. 侧边栏版本号形如 `V1.0.0 (20261001)`；
  *   4. 界面字体栈里 Google Sans Flex 与 Noto Sans SC 都在，且两个 webfont 真的加载成功；
  *   5. 点击外观按钮能循环主题（浅 → 深 → 跟随系统），标签与 `data-theme` 同步变化。
  *
@@ -194,7 +194,7 @@ async function main() {
     log('断言');
     failures += check(
       /^V\d+\.\d+\.\d+ \(\d{8}\)$/.test(report.version || ''),
-      `版本号形如 V0.1.1 (20260930)：${report.version}`,
+      `版本号形如 V1.0.0 (20261001)：${report.version}`,
       report.version ? '' : '侧边栏里没找到版本按钮',
     );
     failures += check(!!report.theme, `data-theme 存在：${report.theme}`);

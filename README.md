@@ -75,7 +75,7 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `Resume-Embellishment-0.1.2-win-x64.zip` | 免安装绿色版，解压即用 |
+| `Resume-Embellishment-1.0.0-win-x64.zip` | 免安装绿色版，解压即用 |
 | `SHA256SUMS.txt` | 校验和 |
 
 系统要求：**Windows 10 / 11 64 位**，需要 **WebView2 运行时**
@@ -88,7 +88,7 @@
 
 **安装**
 
-1. 下载 `Resume-Embellishment-0.1.2-win-x64.zip`。
+1. 下载 `Resume-Embellishment-1.0.0-win-x64.zip`。
 2. **解压到一个普通文件夹**（比如 `D:\Apps\ResumeEmbellishment`）。
    不要直接在压缩包里双击运行 —— 程序会在自己旁边写日志，只读目录会出问题。
 3. 双击 `ResumeEmbellishment.exe`。

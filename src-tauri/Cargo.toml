@@ -1,6 +1,6 @@
 [package]
 name = "resume_embellishment"
-version = "0.1.2"
+version = "1.0.0"
 description = "简历 & 求职信视觉设计美化工具 —— 只改版式，不改文字"
 edition = "2021"
 

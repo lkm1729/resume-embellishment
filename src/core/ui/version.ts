@@ -1,7 +1,7 @@
 /**
  * 版本信息。
  *
- * 显示形如 `V0.1.0(20260928)`：版本号取自 package.json，
+ * 显示形如 `V1.0.0 (20261001)`：版本号取自 package.json，
  * 日期是**构建日期**，都由 Vite 在构建时注入。
  *
  * 为什么不用 Tauri 的 `getVersion()`：
@@ -20,7 +20,7 @@ export const APP_VERSION = __APP_VERSION__;
 /** 构建日期，YYYYMMDD。 */
 export const BUILD_STAMP = __BUILD_STAMP__;
 
-/** 展示用字符串：`V0.1.1 (20260930)`。 */
+/** 展示用字符串：`V1.0.0 (20261001)`。 */
 export const VERSION_LABEL = `V${APP_VERSION} (${BUILD_STAMP})`;
 
 /** 把 YYYYMMDD 变成 `2026-09-28`，用于「关于」面板里更好读的位置。 */

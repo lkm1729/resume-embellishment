@@ -11,8 +11,21 @@ const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')) as
   version: string;
 };
 
-/** 构建日期，`YYYYMMDD`（本地时区，因为用户看到的是本地日期）。 */
+/**
+ * 构建日期，`YYYYMMDD`（本地时区，因为用户看到的是本地日期）。
+ *
+ * 正常情况下就是构建那天的日期。**但可以钉住**：设了环境变量
+ * `BUILD_STAMP` 就用它 —— 版本号升到 `V1.0.0` 时希望日期停在
+ * 对外宣布的那一天（`20261001`），而不是「谁构建谁说了算」，
+ * 否则同一个版本号会因为重建而带上不同日期，Release 说明与
+ * 用户截图里的日期对不上。
+ *
+ * 只认 8 位数字，写错了就当没设（宁可用当天日期，也不能产出一个
+ * 非法的时间戳进到界面上）。
+ */
 function buildStamp(d: Date = new Date()): string {
+  const pinned = process.env.BUILD_STAMP?.trim();
+  if (pinned && /^\d{8}$/.test(pinned)) return pinned;
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
 }
