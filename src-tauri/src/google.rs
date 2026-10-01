@@ -399,7 +399,7 @@ fn wait_for_code(listener: TcpListener, expected_state: &str) -> Result<String> 
                         respond(
                             &mut stream,
                             "授权成功",
-                            "已经连接上你的 Google 账号。回到「简历美化工具」里继续就行，这个页面可以关掉了。",
+                            "已经连接上你的 Google 账号。回到「简历与求职信美化」里继续就行，这个页面可以关掉了。",
                         );
                         return Ok(code);
                     }

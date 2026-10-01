@@ -179,7 +179,7 @@ Tauri v2 的命令参数默认按 **camelCase** 映射，所以 Rust 的 `api_ke
 >    应用一闪即退 —— 这个错误码**完全误导**，实际没有任何进程占用数据目录。
 >    `run.mjs` 的 `healFolder()` 会 `icacls /reset /T` +
 >    `icacls /setintegritylevel (OI)(CI)M /T` 修一遍，并把 exe 另镜像一份到
->    工作区**外**的 `Projects\简历美化工具\` 作为保险。
+>    工作区**外**的同级 `简历美化工具\`（交付目录名，与产品名无关）作为保险。
 
 ## 9. 验收脚本
 
