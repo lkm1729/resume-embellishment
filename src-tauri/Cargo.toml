@@ -1,0 +1,87 @@
+[package]
+name = "resume_embellishment"
+version = "0.1.2"
+description = "简历 & 求职信视觉设计美化工具 —— 只改版式，不改文字"
+edition = "2021"
+
+# 交付物是「主程序 exe + 逻辑 dll」两个文件：
+# lib 里放全部实现，main.rs 只做一行转发。
+[features]
+# 生产构建（不打 dev server）必须开这个特性。
+custom-protocol = ["tauri/custom-protocol"]
+
+[lib]
+name = "resume_embellishment_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.12.0", features = [] }
+
+# 四个插件缺一不可 —— capabilities/default.json 里引用了它们的权限，
+# tauri-build 会因为未知权限直接拒绝构建。
+tauri-plugin-dialog = "2.8.0"
+tauri-plugin-fs = "2.6.0"
+tauri-plugin-opener = "2.6.0"
+tauri-plugin-store = "2.5.0"
+
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.21"
+anyhow = "1.0.104"
+
+# 第三方 LLM 请求与网页抓取全部经 Rust 侧发出：CSP 的 connect-src
+# 只允许 self 与 ipc，前端连不出去。默认特性即 rustls(aws-lc-rs)。
+reqwest = { version = "0.13.5", features = ["json", "gzip", "brotli"] }
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "time"] }
+
+# google.rs 走 OAuth 桌面流程要用到的三样：
+# sha2 算 PKCE 的 S256 挑战，base64 把它写成 URL 安全形式，
+# getrandom 产生 code_verifier 与 state。
+# 三个本来就已经在依赖树里（分别由 reqwest 与 rand 间接带入），
+# 所以声明成直接依赖不会新增任何下载。
+#
+# ⚠ base64 锁在 0.22：锁文件里另有 0.21.7，但那个版本是别的依赖
+# 按可选特性带进来的，本机 registry 缓存里**没有**它的 .crate，
+# 写成 "0.21" 会让 cargo 去 static.crates.io 下载，在离线/受限网络下直接失败。
+sha2 = "0.10"
+base64 = "0.22"
+getrandom = "0.2"
+# 自己拼 application/x-www-form-urlencoded 请求体用（见 google.rs 的 form_encode）。
+# reqwest 的 `.form()` 挂在 `form` 特性后面，而那个特性要拉 serde_urlencoded ——
+# 本机缓存里没有，离线构建会失败，所以宁可自己编码。
+percent-encoding = "2.3"
+
+# 密钥存 Windows 凭据管理器。default feature 就是 v1 兼容层，
+# 它在 Windows 上自动选用 windows-native-keyring-store。
+keyring = "4.2.0"
+
+dirs = "7.0.0"
+regex = "1.13.1"
+
+[target.'cfg(windows)'.dependencies]
+# Win32_Foundation / Win32_System_Com 给 WebView2 打印 PDF 用，
+# Win32_UI_WindowsAndMessaging 给启动失败时的 MessageBoxW 用，
+# Win32_Graphics_Gdi 给 fonts.rs 枚举本机字体族用（EnumFontFamiliesExW）。
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Graphics_Gdi",
+] }
+# PrintToPdfAsync 要通过 tauri 的 with_webview 拿到 ICoreWebView2。
+webview2-com = "0.39.1"
+
+[dev-dependencies]
+# 只给 lib.rs 里那条「opener 的 URL 作用域到底放行了什么」的测试用。
+# tauri 的 ACL 解析结果里，作用域条目是按 glob 存的，判断一个链接是否放行
+# 要用 glob::Pattern —— 也就是插件自己用的那套匹配，不是另写一份正则。
+# 0.3.4 本来就在 Cargo.lock 里（tauri-utils 依赖它），不新增下载。
+glob = "0.3"
+
+[profile.release]
+# 交付的 exe 要小；strip 之后 panic 文本只能进日志文件 —— 这正是
+# src/logging.rs 存在的原因。
+strip = true

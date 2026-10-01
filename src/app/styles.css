@@ -1,0 +1,573 @@
+@import 'tailwindcss';
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * 简历美化工具 · 全局样式
+ *
+ * 这份文件只做四件事：
+ *   1. 声明界面字体（Noto Sans SC / Google Sans Flex 的子集，见 src/assets/fonts）
+ *   2. 用 @theme 定义设计令牌 —— **深色主题是默认值**
+ *   3. 用一层不带 @layer 的 [data-theme='light'] 覆盖令牌，换来浅色主题
+ *   4. 提供少量 Tailwind 表达不了的类（光环、噪点、扫描条、纸张投影等）
+ *
+ * 为什么主题切换不碰任何调用点：
+ *   Tailwind 4 把颜色编译成 var()，`.bg-ink-900` 的产物是
+ *   `background-color: var(--color-ink-900)`，因此只改令牌值就能全站换肤。
+ *
+ * 为什么浅色覆盖块**不能**放进 @layer：
+ *   CSS 级联中「无层样式」优先于任何 @layer 里的样式，
+ *   Tailwind 的令牌落在 @layer theme 里，所以裸写的覆盖块必定生效。
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* ───────────────── 界面字体 ─────────────────
+ *
+ * 字体是「按需子集」而不是整套：
+ *   · Noto Sans SC 取 UI 字符集 + GB2312 一级字（3755 字全覆盖）
+ *   · Google Sans Flex 是可变字体，先实例化成 400/500/600 三个静态面再切子集
+ * 拉丁字母走 Google Sans Flex、汉字走 Noto Sans SC —— 这是 CSS 的**逐字形回退**，
+ * 浏览器对每个字符各自挑第一个能画的字体，所以一行里中英混排不会串味，也不需要 JS。
+ *
+ * 用 woff 而不是 woff2：本机没有 brotli 模块，pyftsubset 出不了 woff2。
+ * ----------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Noto Sans SC';
+  src: url('../assets/fonts/NotoSansSC-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Noto Sans SC';
+  src: url('../assets/fonts/NotoSansSC-Semibold.woff') format('woff');
+  font-weight: 500 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Google Sans Flex';
+  src: url('../assets/fonts/GoogleSans-400.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Google Sans Flex';
+  src: url('../assets/fonts/GoogleSans-500.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Google Sans Flex';
+  src: url('../assets/fonts/GoogleSans-600.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ───────────────── 设计令牌 ─────────────────
+ *
+ * 这里的值是**深色主题**。浅色主题在下面整体覆盖。
+ * ink 阶梯的语义（同一套语义两个主题共用）：
+ *   950/900/850/800  → 底板与浮层，从最深到最浅
+ *   700              → 分隔线与边框
+ *   600              → 「弱化」文字（注释、次要说明）
+ *   400/300/200      → 正文三级文字，200 最亮
+ * ----------------------------------------------------------------------- */
+@theme {
+  --color-ink-950: #12161d;
+  --color-ink-900: #181d26;
+  --color-ink-850: #1f2530;
+  --color-ink-800: #272e3b;
+  --color-ink-700: #354051;
+  --color-ink-600: #4b586b;
+  --color-ink-400: #8b96a8;
+  --color-ink-300: #aeb7c4;
+  --color-ink-200: #d2d9e2;
+
+  /* 品牌金：深色下白纸/深底都能压得住，浅色下换成蓝（见覆盖块） */
+  --color-brand-500: #c9a227;
+  --color-brand-400: #dcb63f;
+  --color-brand-300: #e8ca6a;
+
+  /* 警示色与品牌金同值 —— 深色下金色当警示完全够用，
+     分叉是为了浅色：那里金色压白底只有 1.6:1，必须换成琥珀/棕。 */
+  --color-warn-500: #c9a227;
+  --color-warn-400: #dcb63f;
+  --color-warn-300: #e8ca6a;
+
+  /* 踩在品牌色上的文字色。深色下品牌金很亮，所以字要用近黑。 */
+  --color-on-accent: #0b0f16;
+
+  /* 对话框/抽屉的遮罩 */
+  --color-scrim: rgb(11 15 22 / 0.7);
+
+  /* 危险色：**两个主题共用**。#be123c 在深浅底上都过 AA（6.29:1）。
+     不用 rose-500：它在深色底上只有 3.67:1，白字压上去读不清。 */
+  --color-danger-500: #be123c;
+
+  /* 预览板画布：垫在白纸下面，把纸张的边界衬出来。
+     深色下几乎是黑的，白纸压上去对比 18:1，边界天然清楚。 */
+  --color-canvas: #12161d;
+
+  /* 分页虚线（预览板里标出每页的切割位置）*/
+  --color-guide: rgb(201 162 39 / 0.35);
+
+  /* ── A4 纸张的描边（1px，画在纸的外沿）──
+   * 深色下白纸压近黑底已有 17:1，描边几乎不可见，
+   * 但仍保留：它把刺眼的白边收柔一点，且让两个主题规则同构。 */
+  --color-paper-edge: rgb(0 0 0 / 0.45);
+
+  /* 噪点纹理的强度（.noise 类用）*/
+  --noise-opacity: 0.035;
+
+  /* 浮层投影：卡片、菜单、对话框共用一层 */
+  --shadow-lift: 0 8px 24px -8px rgb(0 0 0 / 0.55);
+}
+
+/* ───────────────── 浅色主题 ───────────────── */
+[data-theme='light'] {
+  --color-ink-950: #ffffff;
+  --color-ink-900: #f8fafc;
+  --color-ink-850: #f1f5f9;
+  --color-ink-800: #e2e8f0;
+  --color-ink-700: #cbd5e1;
+  --color-ink-600: #64748b;
+  --color-ink-400: #475569;
+  --color-ink-300: #334155;
+  --color-ink-200: #1e293b;
+
+  /* 金色压白底只有 1.6:1，浅色主题的强调色整体换成蓝 */
+  --color-brand-500: #1d4ed8;
+  --color-brand-400: #1e40af;
+  --color-brand-300: #1e40af;
+
+  /* 警示：琥珀偏棕，#a16207 压白底 5.02:1 */
+  --color-warn-500: #b45309;
+  --color-warn-400: #a16207;
+  --color-warn-300: #a16207;
+
+  --color-on-accent: #ffffff;
+  --color-scrim: rgb(15 23 42 / 0.45);
+
+  /* 这两个是 Tailwind 内置色，浅色下要换深一档才够对比 */
+  --color-teal-500: #0f766e;
+  --color-rose-500: #be123c;
+
+  /* 画布改成中灰：白纸压纯白等于没有边界 */
+  --color-canvas: #e5e7eb;
+
+  /* 分页虚线：浅色下金色压中灰几乎不可见，改用蓝，与浅色主题同调 */
+  --color-guide: rgb(29 78 216 / 0.3);
+
+  /* 纸张描边：浅色下这一步是**必需的**。
+     白纸压 #e5e7eb 只有 1.24:1 —— 大色块能看出差别，但边界是"软"的。
+     加一道 12% 的深蓝描边把边缘钉住，白纸才像一张纸而不是一块留白。 */
+  --color-paper-edge: rgb(15 23 42 / 0.12);
+
+  --noise-opacity: 0.02;
+  --shadow-lift: 0 8px 24px -10px rgb(15 23 42 / 0.18);
+}
+
+/* ───────────────── 基底 ───────────────── */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-ink-950);
+  color: var(--color-ink-200);
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Google Sans Flex', 'Noto Sans SC', 'Microsoft YaHei',
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 切换主题的那一瞬间挂上这个类，让颜色变化走 180ms 过渡而不是硬闪。
+   theme.ts 会在 220ms 后摘掉它。 */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition:
+    background-color 0.18s,
+    border-color 0.18s,
+    color 0.18s !important;
+}
+
+/* ───────────────── 标题渐变 ───────────────── */
+@keyframes gradient-flow {
+  from {
+    background-position: 0%;
+  }
+  to {
+    background-position: 200%;
+  }
+}
+
+.gradient-text {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-ink-400) 0%,
+    var(--color-brand-300) 20%,
+    var(--color-teal-500) 40%,
+    var(--color-violet-500) 60%,
+    var(--color-brand-300) 80%,
+    var(--color-ink-400) 100%
+  );
+  background-size: 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-flow 3s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text {
+    background-position: 50%;
+    animation: none;
+  }
+}
+
+/* ───────────────── 卡片光环 ─────────────────
+ * 一圈绕边跑的锥形渐变，用双 mask 抠出 1px 边框（content-box xor border-box）。
+ * 它只在 hover / data-active 时转起来，静态时是一条很淡的边。 */
+@property --aura-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes aura-rotate {
+  to {
+    --aura-angle: 360deg;
+  }
+}
+
+.aura-border {
+  position: relative;
+}
+
+.aura-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--aura-angle, 0deg),
+    transparent 0deg,
+    var(--color-brand-500) 60deg,
+    var(--color-teal-500) 120deg,
+    transparent 200deg,
+    transparent 360deg
+  );
+  -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  -webkit-mask-clip: content-box, border-box;
+  mask-clip: content-box, border-box;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.aura-border:hover::before,
+.aura-border[data-active='true']::before {
+  opacity: 1;
+  animation: aura-rotate 4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aura-border:hover::before,
+  .aura-border[data-active='true']::before {
+    animation: none;
+  }
+}
+
+/* ───────────────── 光标光斑 ─────────────────
+ * --mx/--my 由 effects.tsx 在 mousemove 时写入（只写变量，不触发 React 重渲染）。 */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+
+.spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in oklab, var(--color-brand-500) 14%, transparent),
+    transparent 60%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+
+.spotlight:hover::after {
+  opacity: 1;
+}
+
+/* ───────────────── 噪点 ─────────────────
+ * 一层 SVG 分形噪声，压住大面积纯色的「塑料感」。强度两个主题不同。 */
+.noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: var(--noise-opacity);
+  pointer-events: none;
+}
+
+/* ───────────────── 待机呼吸 ───────────────── */
+@keyframes idle-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand-500) 22%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 22px 2px color-mix(in oklab, var(--color-brand-500) 12%, transparent);
+  }
+}
+
+.idle-breathe {
+  animation: idle-breathe 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idle-breathe {
+    animation: none;
+  }
+}
+
+/* ───────────────── 加载轨道 ─────────────────
+ * 一段沿圆跑动的虚线，配合 svg 上的 stroke-dasharray 用。 */
+@keyframes dash-orbit {
+  0% {
+    stroke-dasharray: 1 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90 150;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 90 150;
+    stroke-dashoffset: -124px;
+  }
+}
+
+.orbit-ring {
+  animation: dash-orbit 1.6s ease-in-out infinite;
+}
+
+/* ───────────────── 预览纸 ─────────────────
+ *
+ * `.preview-doc` 是 A4 纸张本体（内容 HTML 由渲染层生成，见 PreviewPanel）。
+ * 它此前在 styles.css 里**没有任何规则** —— 只是个挂在 DOM 上的空钩子，
+ * 于是纸张没有阴影也没有描边，浅色主题下白纸压浅灰底几乎看不出边界。
+ *
+ * 只加 box-shadow、不加 border，理由是布局：
+ *   · border 会让纸张比 A4 宽/高 2px；
+ *   · 页数是靠量 `.preview-doc` 的 scrollHeight 算出来的，
+ *     任何改动盒模型的属性都可能让页数跳变。
+ * box-shadow 不参与布局，因此这两件事都不会发生。
+ */
+.preview-doc {
+  box-shadow:
+    0 0 0 1px var(--color-paper-edge),
+    var(--shadow-lift);
+}
+
+/* ───────────────── 交互动效 ───────────────── */
+.card-lift {
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s,
+    border-color 0.18s;
+}
+
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+/* 列表逐项入场：--i 是序号（由 tsx 写在 style 上），第 12 项之后不再累加延迟，
+   否则长列表要等好几秒才全部出现。 */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  animation: fade-in-up 0.32s both;
+  animation-delay: calc(var(--i, 0) * 22ms);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.2s both;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 不确定进度条：一条 33% 宽的亮条反复扫过 */
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.progress-track {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-track::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 33%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-brand-500) 70%, transparent),
+    transparent
+  );
+  animation: indeterminate 1.4s ease-in-out infinite;
+}
+
+/* 提示文字轻微搏动，用来把视线引到「下一步该点这里」 */
+@keyframes hint-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+.hint-pulse {
+  animation: hint-pulse 3.6s ease-in-out infinite;
+}
+
+/* 系统开了「减少动态效果」时，上面所有动画一次性关掉。
+   这是无障碍要求，也让低端机上的帧率更稳。 */
+@media (prefers-reduced-motion: reduce) {
+  .card-lift,
+  .card-lift:hover {
+    transition: none;
+    transform: none;
+  }
+  .stagger-item,
+  .fade-in,
+  .pop-in,
+  .hint-pulse {
+    animation: none;
+  }
+  .progress-track::after {
+    opacity: 0.4;
+    animation: none;
+  }
+  html.theme-switching,
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition: none !important;
+  }
+}
+
+/* ───────────────── 滚动条 ─────────────────
+ * 深色主题下默认滚动条是亮灰的，很跳，所以自己画一条。
+   颜色走令牌，因此浅色主题自动跟着变。 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-700);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-600);
+  background-clip: content-box;
+}
+
+/* ───────────────── 表单 ───────────────── */
+.field {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-ink-700);
+  border-radius: 0.5rem;
+  background: var(--color-ink-900);
+  color: var(--color-ink-200);
+  font-size: 0.875rem;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.field::placeholder {
+  color: var(--color-ink-600);
+}
+
+.field:focus {
+  border-color: var(--color-brand-500);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-brand-500) 16%, transparent);
+}
+
+.field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

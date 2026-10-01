@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简历与求职信美化</title>
+    <!--
+      CSP 与 tauri.conf.json 中保持一致。
+      注意 connect-src 只允许 self 与 ipc：第三方 LLM 请求全部经 Rust 侧发出，
+      前端不需要、也不应该直接连外部端点。
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; script-src 'self'">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/app/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+# Cargo 生成的编译产物
+/target/
+
+# Tauri 在构建时生成的 capability schema 与 ACL 清单。
+#
+# 不要手动创建这个目录：`tauri_build::build()`（见 build.rs）每次编译都会
+# 重新写出 gen/schemas/acl-manifests.json。它入库只会带来两份会互相漂移的副本。
+#
+# 注意 src/lib.rs 的 the_opener_url_scope_actually_allows_the_console_links
+# 测试要读这个文件 —— 它跑在 cargo build 之后，那时文件一定已经生成好了。
+/gen/schemas
