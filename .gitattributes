@@ -1,0 +1,18 @@
+# 统一按 LF 存入仓库。Windows 上检出时是否转成 CRLF 由各人的
+# core.autocrlf 决定 —— 但不写这一条的话，每次 add 都会刷一屏
+# 「LF will be replaced by CRLF」的告警，且不同机器提交的字节不一致。
+* text=auto eol=lf
+
+# 二进制文件，别做任何换行转换
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.exe  binary
+*.dll  binary
+
+# 这些是生成物或锁文件，diff 噪音大，折叠显示
+package-lock.json    linguist-generated=true
+src-tauri/Cargo.lock linguist-generated=true
